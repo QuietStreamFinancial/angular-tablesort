@@ -78,6 +78,8 @@ To sort in descending order, set ts-default to "descending"
 
 The `ts-repeat` attribute must be set on the element with ng-repeat.
 
+The `ts-table-name` attribute can be set to declare a unique name of the table. The will be passed on the emitted event. This was added to help server-side sorting on multiple tables in the same view to distinguish which table was being re-sorted.
+
 ```html
 <tr ng-repeat="item in items" ts-repeat>
 ```
@@ -167,6 +169,7 @@ Several options may be configured globally per-app.
 |`paginationTemplate`  |`string`           |`""`                    |HTML string template for paging the table. _This will be included **after** the element with `ts-wrapper` specified on it._ See example above.|
 |`perPageOptions`      |`array` of `number`|`[10, 25, 50, 100]`     |The options for how many items to show on each page of results.  _(This can be overridden per-table)_|
 |`perPageDefault`      |`number`           |`perPageOptions[0]`     |The default number of items for show on each page of results. By default, it picks the first item in the `perPageOptions` array.  _(This can be overridden per-table)_|
+|`defaultSortOrderDesc`|`boolean`          |`false`                 |The default sort order for the 1st click on the table header.
 
 Here's an example of how to change an option
 ```js

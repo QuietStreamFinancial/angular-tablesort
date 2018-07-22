@@ -18,6 +18,7 @@ tableSortModule.provider( 'tableSortConfig', function () {
     this.itemNamePlural = this.itemNameSingular + 's'; //Default way to make an item plural for English
     this.noDataText = 'No ' + this.itemNamePlural;     //Default text to show that there are no items
     this.wrappingElementClass = "";                    //Empty by default
+    this.defaultSortOrderDesc = false;
 
     if( !isNaN(this.perPageDefault) && this.perPageOptions.indexOf(this.perPageDefault) === -1 ) {
         //If a default per-page option was added that isn't in the array, add it at the end
@@ -120,6 +121,7 @@ tableSortModule.directive( 'tsWrapper', ['$parse', '$compile', function( $parse,
             $scope.wrappingElementClass = tableSortConfig.wrappingElementClass;
             $scope.sortExpression = [];
             $scope.headings = [];
+            $scope.defaultSortOrderDesc = tableSortConfig.defaultSortOrderDesc;
 
             var parse_sortexpr = function( expr, name ) {
                 return [$parse( expr ), null, false, name ? name : expr];
@@ -141,7 +143,8 @@ tableSortModule.directive( 'tsWrapper', ['$parse', '$compile', function( $parse,
                     }
                     $scope.$emit( 'tablesort:sortOrder', [{
                       name: $scope.sortExpression[0][3],
-                      order: $scope.sortExpression[0][2]
+                      order: $scope.sortExpression[0][2],
+                      tableName: $scope.tableName
                     }]);
                 } else {
                     for( i=0; i<$scope.headings.length; i=i+1 ) {
@@ -149,11 +152,14 @@ tableSortModule.directive( 'tsWrapper', ['$parse', '$compile', function( $parse,
                             .removeClass( 'tablesort-desc' )
                             .removeClass( 'tablesort-asc' );
                     }
-                    element.addClass( 'tablesort-asc' );
+                    var isDesc = $scope.defaultSortOrderDesc;
+                    element.addClass( isDesc ? 'tablesort-desc' : 'tablesort-asc' );
+                    expr[2] = isDesc;
                     $scope.sortExpression = [expr];
                     $scope.$emit( 'tablesort:sortOrder', [{
                       name: expr[3],
-                      order: expr[2]
+                      order: expr[2],
+                      tableName: $scope.tableName
                     }]);
                 }
             };
@@ -185,7 +191,8 @@ tableSortModule.directive( 'tsWrapper', ['$parse', '$compile', function( $parse,
                 $scope.$emit( 'tablesort:sortOrder', $scope.sortExpression.map(function (a) {
                   return {
                     name: a[3],
-                    order: a[2]
+                    order: a[2],
+                    tableName: $scope.tableName
                   };
                 }));
 
@@ -223,6 +230,10 @@ tableSortModule.directive( 'tsWrapper', ['$parse', '$compile', function( $parse,
                     //just bare text, so we return that
                     return v;
                 }
+            }
+
+            if( $attrs.tsTableName ) {
+                $scope.tableName = parseExprOrGetString($attrs.tsTableName);
             }
 
             if( $attrs.tsItemName ) {
@@ -355,7 +366,7 @@ tableSortModule.directive( 'tsWrapper', ['$parse', '$compile', function( $parse,
 
                 // All the sort fields were equal. If there is a 'track by'' expression,
                 // use that as a tiebreaker to make the sort result stable.
-                if( $scope.trackBy ) {                    
+                if( $scope.trackBy ) {
                     if ($scope.trackBy === '$index'){
                         var arr = $parse($scope.itemsArrayExpression)($scope);
                         aval = arr.indexOf(a);
@@ -519,7 +530,7 @@ tableSortModule.directive( 'tsRepeat', ['$compile', '$interpolate', function($co
             var repeatExprRegex = /^\s*([\s\S]+?)\s+in\s+([\s\S]+?)(\s+track\s+by\s+[\s\S]+?)?\s*$/;
             var trackByMatch = repeatExpr.match(/\s+track\s+by\s+(\$index|\S+?\.(\S+))/);
             var repeatInMatch = repeatExpr.match(repeatExprRegex);
-            if (trackByMatch) {                
+            if (trackByMatch) {
                 tsWrapperCtrl.setTrackBy(trackByMatch[2] || trackByMatch[1]);
             }
 
